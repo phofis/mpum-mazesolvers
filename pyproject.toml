@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "maze-solvers"
+version = "0.1.0"
+description = "Comparison of maze navigation algorithms: A*, tabular RL, and genetic search"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy>=1.24",
+    "maze-dataset>=1.3",
+    "matplotlib>=3.7",
+    "joblib>=1.3",
+    "jupyter>=1.0",
+    "ipykernel>=6.25",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/maze_solvers"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
