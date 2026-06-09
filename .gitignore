@@ -9,3 +9,4 @@ dist/
 results/
 .ipynb_checkpoints/
 report/figures/*.png
+data/

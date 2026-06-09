@@ -16,6 +16,7 @@ dependencies = [
     "joblib>=1.3",
     "jupyter>=1.0",
     "ipykernel>=6.25",
+    "muutils>=0.8.3,<0.9",
 ]
 
 [project.optional-dependencies]
