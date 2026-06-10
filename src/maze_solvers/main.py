@@ -20,9 +20,13 @@ from maze_dataset.plotting import MazePlot
 dataset: MazeDataset = MazeDataset.from_config(cfg)
 maze: SolvedMaze = dataset[1]
 
+
 q: Qlearning = Qlearning(maze = Maze.from_solvedmaze(maze), hyperparams = {})
 q.run()
+
+
 for i in range(q.hyperparams["episodes"]):
-    print(f"epoch {i} steps {len(q.history)} reward {np.sum(q.history['rewards'][i])}")
+    print(f"epoch {i} steps {len(q.history['steps'][i])} reward {np.sum(q.history['rewards'][i])}")
 
-
+fig = MazePlot(maze).plot()
+plt.show()
