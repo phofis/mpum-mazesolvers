@@ -1,5 +1,6 @@
-from dataclasses import dataclass
 import numpy as np
+from numpy.typing import NDArray
+from maze_dataset.constants import Coord
 from maze_dataset.maze.lattice_maze import SolvedMaze
 
 UP = 0
@@ -7,24 +8,43 @@ DOWN = 1
 LEFT = 2
 RIGHT = 3
 
+STEP_PENALTY = -1
+WALL_PENALTY = -5
+WIN_REWARD = 100
+
+DELTAS = np.array([[-1, 0], [1, 0], [0, -1], [0, 1]], dtype=np.int8)
+
+
 class Maze:
-    def __init__(self, rows: int, cols:int, connections, start_pos, end_pos) -> None:
+    def __init__(
+        self,
+        rows: int,
+        cols: int,
+        connections: NDArray[np.bool_],
+        start_pos: Coord,
+        end_pos: Coord,
+        quick_path_len: int
+    ) -> None:
         self.rows = rows
         self.cols = cols
         self.connections = connections
-        self.start_pos = start_pos
-        self.end_pos = end_pos
-    
-    def from_solvedmaze(solved_maze: SolvedMaze):
+        self.start_pos = np.asarray(start_pos, dtype=np.intp)
+        self.end_pos = np.asarray(end_pos, dtype=np.intp)
+        self.quickest_path_len = quick_path_len
+
+    @staticmethod
+    def from_solvedmaze(solved_maze: SolvedMaze) -> "Maze":
         return Maze(
             rows=solved_maze.grid_shape[0],
             cols=solved_maze.grid_shape[1],
-            connections=solved_maze.connection_list,
+            connections=connection_list_to_4dir(solved_maze.connection_list),
             start_pos=solved_maze.start_pos,
-            end_pos=solved_maze.end_pos
+            end_pos=solved_maze.end_pos,
+            quick_path_len=len(solved_maze.find_shortest_path(solved_maze.start_pos,solved_maze.end_pos))
         )
 
-def connection_list_to_4dir(connection_list):
+
+def connection_list_to_4dir(connection_list: NDArray[np.bool_]) -> NDArray[np.bool_]:
     """
     build 4-direction mask from a maze.connection_list
 
@@ -45,3 +65,7 @@ def connection_list_to_4dir(connection_list):
     four_dir[LEFT, :, 1:] = right[:, :-1]
 
     return four_dir
+
+
+def maze_step(action: int, state: Coord) -> Coord:
+    return state + DELTAS[action]
