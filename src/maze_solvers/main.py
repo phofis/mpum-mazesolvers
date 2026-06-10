@@ -6,7 +6,7 @@ from maze_solvers.utils import Maze
 import matplotlib.pyplot as plt
 import numpy as np
 
-from maze_solvers.qlearning import Qlearing
+from maze_solvers.qlearning import Qlearning
 
 cfg: MazeDatasetConfig = MazeDatasetConfig(
 	name="test", # name is only for you to keep track of things
@@ -20,9 +20,9 @@ from maze_dataset.plotting import MazePlot
 dataset: MazeDataset = MazeDataset.from_config(cfg)
 maze: SolvedMaze = dataset[1]
 
-q: Qlearing = Qlearing(maze = Maze.from_solvedmaze(maze), hyperparams = {})
+q: Qlearning = Qlearning(maze = Maze.from_solvedmaze(maze), hyperparams = {})
 q.run()
-for i in q.hyperparams["episodes"]:
-    print(f"epoch {i} steps {len(q.history)} reward {np}")
+for i in range(q.hyperparams["episodes"]):
+    print(f"epoch {i} steps {len(q.history)} reward {np.sum(q.history['rewards'][i])}")
 
 
