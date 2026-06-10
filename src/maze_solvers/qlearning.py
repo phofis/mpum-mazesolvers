@@ -22,7 +22,6 @@ default_hyperparams = {
 def epsilon_greedy(
     state: Coord,
     q_table: NDArray[np.float64],
-    step: np.intp,
     hyperparams: dict
 ) -> np.intp:
     row, col = state
@@ -35,7 +34,6 @@ def epsilon_greedy(
 def softmax_exploration(
     state: Coord,
     q_table: NDArray[np.float64],
-    step: np.intp,
     hyperparams: dict
 ) -> np.intp:
     T = hyperparams["temperature"]
@@ -48,11 +46,11 @@ def softmax_exploration(
 
 def pursuit(
     state: Coord,
-    q_table: NDArray[np.float64],
-    step: np.intp,
-    hyperparams: dict
+    pi_table: NDArray[np.float64],
 ) -> np.intp:
-    pass
+    row, col = state
+    return np.random.choice(np.arange(4), p=pi_table[:, row, col])
+
 
 
 
@@ -64,23 +62,31 @@ class Qlearning:
                 self.hyperparams[key] = val
         self.env = Env(maze, Rewards())
         self.q_table = np.zeros((4, maze.rows, maze.cols)) # 4 actions, rows, columns
-        self.history = {
-            "rewards": {},
-            "steps": {},
-        }
 
-    def _pick_action(self, state: Coord, step: int) -> np.intp:
-        return epsilon_greedy(state, self.q_table, step, self.hyperparams)
+
+    def _pick_action(self, state: Coord) -> np.intp:
+        strategy = self.hyperparams.get("exploration", "pursuit")
+        if strategy == "epsilon_greedy":
+            return epsilon_greedy(state, self.q_table, self.hyperparams)
+        if strategy == "softmax":
+            return softmax_exploration(state, self.q_table, self.hyperparams)
+        return pursuit(state, self.pi_table)
+
+    def _update_hyperparams(self) -> None:
+        self.hyperparams["epsilon"] = max(self.hyperparams["epsilon"] * self.hyperparams["epsilon_decay"], self.hyperparams["min_epsilon"])
+        self.hyperparams["temperature"] = max(self.hyperparams["temperature"] * self.hyperparams["t_decay"], self.hyperparams["min_t"])
+            
 
     def run(self) -> None:
         for episode in range(self.hyperparams["episodes"]):
             S = self.env.reset()
-            steps = 0
             path = []
             rewards = []
-            while not np.array_equal(S, self.env.end_pos) and steps < self.hyperparams["max_steps"]:
-                A = self._pick_action(S, steps)
-                R, S_prim, done = self.env.step(A)
+            actions = []
+            foundExit = False
+            while not foundExit and self.env.steps < self.hyperparams["max_steps"]:
+                A = self._pick_action(S)
+                R, S_prim, foundExit = self.env.step(A)
 
                 row, col = S
                 row_prim, col_prim = S_prim
@@ -89,14 +95,15 @@ class Qlearning:
                     + self.hyperparams["gamma"] * self.q_table[:, row_prim, col_prim].max()
                     - self.q_table[A, row, col]
                 )
-                if done:
-                    break
+
                 rewards.append(R)
                 path.append(S_prim)
+                actions.append(A)
                 S = S_prim
                 steps += 1
-            self.hyperparams["epsilon"] = max(self.hyperparams["epsilon"] * self.hyperparams["epsilon_decay"], self.hyperparams["min_epsilon"])
-            self.history["rewards"][episode] = rewards
-            self.history["steps"][episode] = path
+
+
+            self.env.history.update(episode, rewards, path, actions)
+            self._update_hyperparams()
         
             
