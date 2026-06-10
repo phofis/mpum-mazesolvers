@@ -13,9 +13,9 @@ class Rewards:
 
 class History:
     def __init__(self) -> None:
-        self.rewards: Dict[int, List[int]]
-        self.steps: Dict[int, List[Coord]]
-        self.actions: Dict[int, List[int]]
+        self.rewards: Dict[int, List[int]] = {}
+        self.steps: Dict[int, List[Coord]] = {}
+        self.actions: Dict[int, List[int]] = {}
 
     def update(
         self,
@@ -45,7 +45,6 @@ class Env:
         row, col = self.state
         if self.maze.connections[action, row, col]:
             self.state = maze_step(action, self.state)
-            self.steps += 1
             if np.array_equal(self.state, self.end_pos):
                 return self.rewards.WIN_REWARD, self.state, True
             return self.rewards.STEP_PENALTY, self.state, False
