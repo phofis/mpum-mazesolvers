@@ -18,9 +18,9 @@ default_hyperparams = {
     "alpha": 0.1,
     "gamma": 0.99,
     "epsilon": 0.25,
-    "episodes": 1000,
+    "episodes": 500,
     "max_steps": 1000,
-    "early_stop": -1,  # stop training after k consecutive finds of optimal path, -1 if no early stopping
+    "early_stop": 10,  # stop training after k consecutive finds of optimal path, -1 if no early stopping
     "min_epsilon": 0.01,
     "epsilon_decay": 0.995,
     "temperature": 50,
@@ -35,7 +35,7 @@ class Qlearning:
     def __init__(
         self,
         maze: Maze,
-        hyperparams: Dict,
+        hyperparams: Dict = {},
         strategy: Strategy = Strategy.EPSILON_GREEDY,
     ) -> None:
         self.hyperparams = hyperparams
@@ -64,7 +64,7 @@ class Qlearning:
         )
 
     def _try_early_stop(self, path) -> bool:
-        if len(path) == self.env.maze.quickest_path_len - 1:
+        if len(path) == self.env.maze.quickest_path_len:
             self.k += 1
         else:
             self.k = 0
@@ -77,7 +77,7 @@ class Qlearning:
         for episode in range(self.hyperparams["episodes"]):
             S = self.env.reset()
             self.exploration.on_episode_start()
-            path = []
+            path = [self.env.maze.start_pos]
             rewards = []
             actions = []
             foundExit = False
@@ -105,12 +105,12 @@ class Qlearning:
                 # print(self.env.steps)
             self.history.update(episode, rewards, path, actions)
             self._update_hyperparams()
-
+            self.stopped_at_epoch = episode
             # early stop
             if self._try_early_stop(path):
                 return
 
-    def predict(self) -> Tuple[List[int],List[Coord], List[int]]:
+    def predict(self) -> Tuple[List[int], List[Coord], List[int], bool, int]:
         rewards = []
         path = []
         actions = []
@@ -124,4 +124,10 @@ class Qlearning:
             path.append(S_prim)
             actions.append(A)
             S = S_prim
-        return rewards,path,actions
+        return (
+            rewards,
+            path,
+            actions,
+            len(path) == self.env.maze.quickest_path_len,
+            self.stopped_at_epoch
+        )

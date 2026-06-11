@@ -26,9 +26,6 @@ class History:
         self.steps[epoch] = path
         self.actions[epoch] = actions
 
-    def plotHistory() -> None:
-        pass
-
 
 class Env:
     def __init__(self, maze: Maze, rewards: Rewards) -> None:
