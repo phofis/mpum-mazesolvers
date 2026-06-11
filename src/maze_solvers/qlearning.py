@@ -28,6 +28,7 @@ default_hyperparams = {
     "t_decay": 0.95,
     "beta": 0.1,
     "C": 1.0,
+    "masking" : False
 }
 
 
@@ -42,8 +43,9 @@ class Qlearning:
         for key, val in default_hyperparams.items():
             if key not in self.hyperparams:
                 self.hyperparams[key] = val
-        self.env = Env(maze, Rewards())
-        self.q_table = np.zeros((4, maze.rows, maze.cols))  # 4 actions, rows, columns
+        self.env = Env(maze, Rewards(), self.hyperarams)
+        self.q_table = np.zeros((4, maze.rows, maze.cols)) 
+        self.q_table[~self.env.mask] = -np.inf 
         self.exploration: ExplorationStrategy = EpsilonGreedy()
         self.history = History()
         self.k = 0
@@ -84,15 +86,19 @@ class Qlearning:
             actions = []
             foundExit = False
             while not foundExit and self.env.steps < self.hyperparams["max_steps"]:
+
                 A = self.exploration.pick_action(S, self.q_table, self.hyperparams)
                 R, S_prim, foundExit = self.env.step(A)
 
                 row, col = S
                 row_prim, col_prim = S_prim
+                max_q_prim = self.q_table[:, row_prim, col_prim].copy()
+                max_q_prim[~self.env.mask[:, row_prim, col_prim]] = -np.inf  
+                
                 self.q_table[A, row, col] += self.hyperparams["alpha"] * (
                     R
                     + self.hyperparams["gamma"]
-                    * self.q_table[:, row_prim, col_prim].max()
+                    * max_q_prim.max()
                     - self.q_table[A, row, col]
                 )
 

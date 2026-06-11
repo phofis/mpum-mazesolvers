@@ -45,11 +45,11 @@ class Greedy(ExplorationStrategy):
 
 class EpsilonGreedy(ExplorationStrategy):
     def pick_action(self, state: Coord, q_table: NDArray, hyperparams: Dict) -> np.intp:
-        row, col = state
         eps = hyperparams["epsilon"]
+        row, col = state
+        q_values = q_table[:, row, col]
         if np.random.rand() < eps:
             return np.random.randint(0, 4)
-        q_values = q_table[:, row, col]
         max_actions = np.flatnonzero(q_values == q_values.max())
         return np.random.choice(max_actions)
 
@@ -57,8 +57,8 @@ class EpsilonGreedy(ExplorationStrategy):
 class Softmax(ExplorationStrategy):
     def pick_action(self, state: Coord, q_table: NDArray, hyperparams: Dict) -> np.intp:
         row, col = state
-        T = hyperparams["temperature"]
         q_values = q_table[:, row, col]
+        T = hyperparams["temperature"]
         softmax_q_values = np.exp(q_values / T)
         softmax_q_values_norm = softmax_q_values / np.sum(softmax_q_values)
         return np.random.choice(np.arange(4), p=softmax_q_values_norm)
@@ -83,8 +83,9 @@ class Pursuit(ExplorationStrategy):
     ) -> None:
         row, col = state
         beta = hyperparams["beta"]
-        greedy = q_table[:, row, col].argmax()
-        for a in range(q_table.shape[0]):
+        q_values = q_table[:, row, col]
+        greedy = q_values.argmax()
+        for a in range(q_values.shape[0]):
             target = 1.0 if a == greedy else 0.0
             self.pi_table[a, row, col] += beta * (target - self.pi_table[a, row, col])
 
@@ -96,13 +97,12 @@ class UCB(ExplorationStrategy):
 
     def pick_action(self, state: Coord, q_table: NDArray, hyperparams: Dict) -> np.intp:
         row, col = state
+        q_values = q_table[:, row, col]
         C = hyperparams["C"]
         available = np.flatnonzero(self.available[:, row, col])
         not_tried = available[self.counts[available, row, col] == 0]
         if len(not_tried) > 0:
             return np.random.choice(not_tried)
-
-        q_values = q_table[:, row, col]
         if C == 0:
             scores = q_values[available]
         else:
