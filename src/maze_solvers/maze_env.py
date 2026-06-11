@@ -43,7 +43,6 @@ class Env:
             if np.array_equal(self.state, self.end_pos):
                 return self.rewards.WIN_REWARD, self.state, True
             return self.rewards.STEP_PENALTY, self.state, False
-        print("hit a wall")
         return self.rewards.WALL_PENALTY, self.state, False
     def reset(self) -> Coord:
         self.state = self.maze.start_pos

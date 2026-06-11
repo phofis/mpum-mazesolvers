@@ -64,8 +64,6 @@ class SARSA(Agent):
             self.exploration = UCB(maze)
 
 
-    def _pick_action(self, state: Coord) -> int:
-        return self.exploration.pick_action(state, self.q_table, self.hyperparams, self.env.mask)
     def _try_early_stop(self, path) -> bool:
         if len(path) == self.env.maze.quickest_path_len:
             self.k += 1
@@ -90,8 +88,7 @@ class SARSA(Agent):
         for episode in range(self.hyperparams["episodes"]):
 
             S = self.env.reset()
-            A = self._pick_action(S)
-
+            A = self.exploration.pick_action(S, self.q_table, self.hyperparams, self.env.mask)
             rewards = []
             path = [S]
             actions = []
@@ -101,7 +98,7 @@ class SARSA(Agent):
             while not done and self.env.steps < self.hyperparams["max_steps"]:
 
                 R, S_prim, done = self.env.step(A)
-                A_prim = self._pick_action(S_prim)
+                A_prim = self.exploration.pick_action(S_prim, self.q_table, self.hyperparams, self.env.mask)
 
                 r, c = S
                 r2, c2 = S_prim

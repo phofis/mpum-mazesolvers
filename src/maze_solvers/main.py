@@ -162,7 +162,7 @@ def main() -> None:
         f"({len(jobs)} training runs, hyperparams={default_hyperparams})"
     )
     results: list[RunResult] = Parallel(n_jobs=N_JOBS, verbose=10)(
-        delayed(run_single)(config, maze, Qlearning) for config, maze in jobs
+        delayed(run_single)(config, maze, SARSA) for config, maze in jobs
     )
 
     summaries = aggregate_results(results)
