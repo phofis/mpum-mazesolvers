@@ -46,6 +46,8 @@ class Qlearning:
         self.q_table = np.zeros((4, maze.rows, maze.cols))  # 4 actions, rows, columns
         self.exploration: ExplorationStrategy = EpsilonGreedy()
         self.history = History()
+        self.k = 0
+        self.stopped_at_epoch = 0
         if strategy == Strategy.SOFTMAX:
             self.exploration = Softmax()
         elif strategy == Strategy.PURSUIT:
