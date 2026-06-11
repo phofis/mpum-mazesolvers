@@ -36,7 +36,6 @@ class Env:
         self.steps = 0
         self.masking = masking
         self.mask = self.maze.connections if masking else np.ones_like(self.maze.connections, dtype=bool)
-
     def step(self, action: int) -> Tuple[int, Coord, bool]:
         row, col = self.state
         if self.maze.connections[action, row, col]:
@@ -44,6 +43,7 @@ class Env:
             if np.array_equal(self.state, self.end_pos):
                 return self.rewards.WIN_REWARD, self.state, True
             return self.rewards.STEP_PENALTY, self.state, False
+        print("hit a wall")
         return self.rewards.WALL_PENALTY, self.state, False
     def reset(self) -> Coord:
         self.state = self.maze.start_pos

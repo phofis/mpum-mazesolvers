@@ -9,6 +9,7 @@ from maze_dataset.maze.lattice_maze import SolvedMaze
 from maze_solvers.dataset_gen import load_dataset, project_root
 from maze_solvers.exploration_strategies import Strategy
 from maze_solvers.qlearning import Qlearning, default_hyperparams
+from maze_solvers.sarsa import SARSA
 from maze_solvers.utils import Maze
 from maze_solvers.agent import Agent
 
@@ -160,9 +161,8 @@ def main() -> None:
         f"Loaded {len(collection)} mazes from {DATASET_PATH} "
         f"({len(jobs)} training runs, hyperparams={default_hyperparams})"
     )
-
     results: list[RunResult] = Parallel(n_jobs=N_JOBS, verbose=10)(
-        delayed(run_single)(config, maze) for config, maze in jobs
+        delayed(run_single)(config, maze, Qlearning) for config, maze in jobs
     )
 
     summaries = aggregate_results(results)

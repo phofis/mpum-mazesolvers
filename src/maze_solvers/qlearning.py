@@ -14,6 +14,7 @@ from maze_solvers.exploration_strategies import (
     Strategy,
 )
 from maze_solvers.agent import Agent
+from maze_solvers.masking import masked_max
 
 default_hyperparams = {
     "alpha": 0.1,
@@ -29,7 +30,7 @@ default_hyperparams = {
     "t_decay": 0.95,
     "beta": 0.1,
     "C": 1.0,
-    "masking" : False
+    "masking" : True
 }
 
 
@@ -44,9 +45,8 @@ class Qlearning(Agent):
         for key, val in default_hyperparams.items():
             if key not in self.hyperparams:
                 self.hyperparams[key] = val
-        self.env = Env(maze, Rewards(), self.hyperarams)
+        self.env = Env(maze, Rewards(), self.hyperparams["masking"])
         self.q_table = np.zeros((4, maze.rows, maze.cols)) 
-        self.q_table[~self.env.mask] = -np.inf 
         self.exploration: ExplorationStrategy = EpsilonGreedy()
         self.history = History()
         self.k = 0
@@ -77,7 +77,7 @@ class Qlearning(Agent):
             return True
         else:
             return False
-
+        
     def train(self) -> None:
         for episode in range(self.hyperparams["episodes"]):
             S = self.env.reset()
@@ -88,18 +88,17 @@ class Qlearning(Agent):
             foundExit = False
             while not foundExit and self.env.steps < self.hyperparams["max_steps"]:
 
-                A = self.exploration.pick_action(S, self.q_table, self.hyperparams)
+                A = self.exploration.pick_action(S, self.q_table, self.hyperparams, self.env.mask)
                 R, S_prim, foundExit = self.env.step(A)
 
                 row, col = S
                 row_prim, col_prim = S_prim
-                max_q_prim = self.q_table[:, row_prim, col_prim].copy()
-                max_q_prim[~self.env.mask[:, row_prim, col_prim]] = -np.inf  
                 
+                next_q = masked_max(self.q_table[:, row_prim, col_prim], self.env.mask[:, row_prim, col_prim])
                 self.q_table[A, row, col] += self.hyperparams["alpha"] * (
                     R
                     + self.hyperparams["gamma"]
-                    * max_q_prim.max()
+                    * next_q
                     - self.q_table[A, row, col]
                 )
 
@@ -107,7 +106,7 @@ class Qlearning(Agent):
                 path.append(S_prim)
                 actions.append(A)
                 self.exploration.after_step(
-                    S, A, R, S_prim, self.q_table, self.hyperparams
+                    S, A, R, S_prim, self.q_table, self.hyperparams, self.env.mask
                 )
                 S = S_prim
                 self.env.steps += 1
@@ -127,7 +126,7 @@ class Qlearning(Agent):
         S = self.env.reset()
         exploration = Greedy()
         while not foundExit:
-            A = exploration.pick_action(S, self.q_table, self.hyperparams)
+            A = exploration.pick_action(S, self.q_table, self.hyperparams, self.env.mask)
             R, S_prim, foundExit = self.env.step(A)
             rewards.append(R)
             path.append(S_prim)
