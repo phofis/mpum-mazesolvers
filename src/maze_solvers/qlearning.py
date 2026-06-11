@@ -30,7 +30,7 @@ default_hyperparams = {
     "t_decay": 0.95,
     "beta": 0.1,
     "C": 1.0,
-    "masking" : True
+    "masking" : False
 }
 
 
