@@ -45,11 +45,6 @@ class Env:
                 return self.rewards.WIN_REWARD, self.state, True
             return self.rewards.STEP_PENALTY, self.state, False
         return self.rewards.WALL_PENALTY, self.state, False
-    def action_mask(self, state: Coord, masking : bool) -> NDArray[np.bool_]:
-        row, col = state
-        if(masking):
-            return self.maze.connections[:, row, col] 
-        return np.ones(4, dtype=bool)
     def reset(self) -> Coord:
         self.state = self.maze.start_pos
         self.steps = 0
