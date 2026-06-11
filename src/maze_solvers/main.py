@@ -10,6 +10,7 @@ from maze_solvers.dataset_gen import load_dataset, project_root
 from maze_solvers.exploration_strategies import Strategy
 from maze_solvers.qlearning import Qlearning, default_hyperparams
 from maze_solvers.utils import Maze
+from maze_solvers.agent import Agent
 
 STRATEGIES = list(Strategy)
 DATASET_PATH = project_root() / "dataset.zanj"
@@ -43,9 +44,9 @@ class RunResult:
         return (self.strategy, self.grid_n, self.generator)
 
 
-def run_single(config: RunConfig, solved_maze: SolvedMaze) -> RunResult:
+def run_single(config: RunConfig, solved_maze: SolvedMaze, agent: Agent) -> RunResult:
     maze = Maze.from_solvedmaze(solved_maze)
-    agent = Qlearning(maze, strategy=config.strategy)
+    agent = agent(maze, strategy=config.strategy)
     agent.train()
     _rewards, path, _actions, optimal, epoch = agent.predict()
     path_len = len(path)

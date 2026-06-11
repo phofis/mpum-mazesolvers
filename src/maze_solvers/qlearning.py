@@ -13,6 +13,7 @@ from maze_solvers.exploration_strategies import (
     UCB,
     Strategy,
 )
+from maze_solvers.agent import Agent
 
 default_hyperparams = {
     "alpha": 0.1,
@@ -32,7 +33,7 @@ default_hyperparams = {
 }
 
 
-class Qlearning:
+class Qlearning(Agent):
     def __init__(
         self,
         maze: Maze,

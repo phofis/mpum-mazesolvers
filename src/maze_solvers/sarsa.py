@@ -2,8 +2,18 @@
 from maze_dataset import Coord
 from maze_solvers.maze_env import Env, Rewards
 from maze_solvers.utils import Maze
+from maze_solvers.exploration_strategies import (
+    ExplorationStrategy,
+    EpsilonGreedy,
+    Greedy,
+    Softmax,
+    Pursuit,
+    UCB,
+    Strategy,)
+from maze_solvers.agent import Agent
 import numpy as np
 from numpy.typing import NDArray
+
 default_hyperparams = {
     "alpha": 0.1,
     "gamma": 0.99,
@@ -24,7 +34,7 @@ def epsilon_greedy(
     q_values = q_table[:, row, col]
     max_actions = np.flatnonzero(q_values == q_values.max())
     return np.random.choice(max_actions)
-class SARSA:
+class SARSA(Agent):
     def __init__(self, maze: Maze, hyperparams: dict) -> None:
         self.hyperparams = hyperparams
         for key,val in default_hyperparams.items(): 
@@ -69,7 +79,7 @@ class SARSA:
             
             self.history["rewards"].append(rewards)
             self.history["steps"].append(path)
-    def test(self) -> None:
+    def predict(self) -> tuple:
         S = self.env.reset()
         path = [S]
         while not np.array_equal(S, self.env.end_pos):
