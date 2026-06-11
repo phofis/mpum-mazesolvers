@@ -23,7 +23,7 @@ class Maze:
         connections: NDArray[np.bool_],
         start_pos: Coord,
         end_pos: Coord,
-        quick_path_len: int
+        quick_path_len: int,
     ) -> None:
         self.rows = rows
         self.cols = cols
@@ -40,7 +40,11 @@ class Maze:
             connections=connection_list_to_4dir(solved_maze.connection_list),
             start_pos=solved_maze.start_pos,
             end_pos=solved_maze.end_pos,
-            quick_path_len=len(solved_maze.find_shortest_path(solved_maze.start_pos,solved_maze.end_pos))
+            quick_path_len=len(
+                solved_maze.find_shortest_path(
+                    solved_maze.start_pos, solved_maze.end_pos
+                )
+            ),
         )
 
 

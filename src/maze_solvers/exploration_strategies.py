@@ -1,5 +1,3 @@
-
-
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict
@@ -21,7 +19,7 @@ class ExplorationStrategy(ABC):
     @abstractmethod
     def pick_action(self, state: Coord, q_table: NDArray, hyperparams: Dict) -> np.intp:
         pass
-    
+
     def on_episode_start(self) -> None:
         pass
 
@@ -35,6 +33,7 @@ class ExplorationStrategy(ABC):
         hyperparams: Dict,
     ) -> None:
         pass
+
 
 class EpsilonGreedy(ExplorationStrategy):
     def pick_action(self, state: Coord, q_table: NDArray, hyperparams: Dict) -> np.intp:
@@ -53,11 +52,7 @@ class Softmax(ExplorationStrategy):
         T = hyperparams["temperature"]
         q_values = q_table[:, row, col]
         softmax_q_values = np.exp(q_values / T)
-        softmax_q_values_norm = (softmax_q_values / np.sum(softmax_q_values)) + 1e-12
-        print(q_values)
-        print(softmax_q_values)
-        print(softmax_q_values_norm)
-        print('---')
+        softmax_q_values_norm = softmax_q_values / np.sum(softmax_q_values)
         return np.random.choice(np.arange(4), p=softmax_q_values_norm)
 
 
@@ -68,24 +63,22 @@ class Pursuit(ExplorationStrategy):
 
     def __init__(self, maze: Maze) -> None:
         self.pi_table = np.ones_like(maze.connections) / 4
-    
+
     def after_step(
         self,
         state: Coord,
         action: int,
         reward: float,
         next_state: Coord,
-        q_table: NDArray, 
-        hyperparams: Dict
+        q_table: NDArray,
+        hyperparams: Dict,
     ) -> None:
         row, col = state
         beta = hyperparams["beta"]
         greedy = q_table[:, row, col].argmax()
         for a in range(q_table.shape[0]):
             target = 1.0 if a == greedy else 0.0
-            self.pi_table[a, row, col] += beta * (
-                target - self.pi_table[a, row, col]
-            )
+            self.pi_table[a, row, col] += beta * (target - self.pi_table[a, row, col])
 
 
 class UCB(ExplorationStrategy):
@@ -106,8 +99,8 @@ class UCB(ExplorationStrategy):
             scores = q_values[available]
         else:
             n_s = self.counts[:, row, col].sum()
-            bonuses = 100 * C * np.sqrt(
-                2 * np.log(n_s) / self.counts[available, row, col]
+            bonuses = (
+                100 * C * np.sqrt(2 * np.log(n_s) / self.counts[available, row, col])
             )
             scores = q_values[available] + bonuses
 
