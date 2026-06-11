@@ -35,6 +35,14 @@ class ExplorationStrategy(ABC):
         pass
 
 
+class Greedy(ExplorationStrategy):
+    def pick_action(self, state: Coord, q_table: NDArray, hyperparams: Dict) -> np.intp:
+        row, col = state
+        q_values = q_table[:, row, col]
+        max_actions = np.flatnonzero(q_values == q_values.max())
+        return np.random.choice(max_actions)
+
+
 class EpsilonGreedy(ExplorationStrategy):
     def pick_action(self, state: Coord, q_table: NDArray, hyperparams: Dict) -> np.intp:
         row, col = state

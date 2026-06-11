@@ -37,7 +37,6 @@ class Env:
         self.rewards = rewards
         self.end_pos = maze.end_pos
         self.steps = 0
-        self.history = History()
 
     def step(self, action: int) -> Tuple[int, Coord, bool]:
         row, col = self.state

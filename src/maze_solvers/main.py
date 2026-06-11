@@ -28,9 +28,9 @@ q: Qlearning = Qlearning(
 q.train()
 
 
-for i in range(len(q.env.history.steps)):
+for i in range(len(q.history.steps)):
     print(
-        f"epoch {i} steps {len(q.env.history.steps[i])} reward {np.sum(q.env.history.rewards[i])}"
+        f"epoch {i} steps {len(q.history.steps[i])} reward {np.sum(q.history.rewards[i])}"
     )
 
 fig = MazePlot(maze).plot()

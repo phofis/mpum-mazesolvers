@@ -1,12 +1,13 @@
-from typing import Dict
+from typing import Dict, List, Tuple
 from maze_solvers.utils import Maze
 import numpy as np
 from numpy.typing import NDArray
 from maze_dataset.constants import Coord
-from maze_solvers.maze_env import Rewards, Env
+from maze_solvers.maze_env import History, Rewards, Env
 from maze_solvers.exploration_strategies import (
     ExplorationStrategy,
     EpsilonGreedy,
+    Greedy,
     Softmax,
     Pursuit,
     UCB,
@@ -44,6 +45,7 @@ class Qlearning:
         self.env = Env(maze, Rewards())
         self.q_table = np.zeros((4, maze.rows, maze.cols))  # 4 actions, rows, columns
         self.exploration: ExplorationStrategy = EpsilonGreedy()
+        self.history = History()
         if strategy == Strategy.SOFTMAX:
             self.exploration = Softmax()
         elif strategy == Strategy.PURSUIT:
@@ -101,9 +103,25 @@ class Qlearning:
                 S = S_prim
                 self.env.steps += 1
                 # print(self.env.steps)
-            self.env.history.update(episode, rewards, path, actions)
+            self.history.update(episode, rewards, path, actions)
             self._update_hyperparams()
 
             # early stop
             if self._try_early_stop(path):
                 return
+
+    def predict(self) -> Tuple[List[int],List[Coord], List[int]]:
+        rewards = []
+        path = []
+        actions = []
+        foundExit = False
+        S = self.env.reset()
+        exploration = Greedy()
+        while not foundExit:
+            A = exploration.pick_action(S, self.q_table, self.hyperparams)
+            R, S_prim, foundExit = self.env.step(A)
+            rewards.append(R)
+            path.append(S_prim)
+            actions.append(A)
+            S = S_prim
+        return rewards,path,actions
