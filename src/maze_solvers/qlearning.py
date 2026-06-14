@@ -139,3 +139,5 @@ class Qlearning(Agent):
             len(path) == self.env.maze.quickest_path_len,
             self.stopped_at_epoch
         )
+    def getHistory(self):
+        return self.history

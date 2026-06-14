@@ -62,7 +62,9 @@ class SARSA(Agent):
             self.exploration = Pursuit(maze)
         elif strategy == Strategy.UCB:
             self.exploration = UCB(maze)
-
+    
+    def getHistory(self):
+        return self.history
 
     def _try_early_stop(self, path) -> bool:
         if len(path) == self.env.maze.quickest_path_len:

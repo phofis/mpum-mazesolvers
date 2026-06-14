@@ -12,6 +12,7 @@ from maze_solvers.qlearning import Qlearning, default_hyperparams
 from maze_solvers.sarsa import SARSA
 from maze_solvers.utils import Maze
 from maze_solvers.agent import Agent
+import numpy as np
 
 STRATEGIES = list(Strategy)
 DATASET_PATH = project_root() / "dataset.zanj"
@@ -39,6 +40,8 @@ class RunResult:
     episodes_trained: int
     optimality_ratio: float
     path_regret: int
+    path_lengths: list[int]
+    total_rewards: list[float]
 
     @property
     def group_key(self) -> tuple:
@@ -52,6 +55,8 @@ def run_single(config: RunConfig, solved_maze: SolvedMaze, agent: Agent) -> RunR
     _rewards, path, _actions, optimal, epoch = agent.predict()
     path_len = len(path)
     optimal_len = maze.quickest_path_len
+    history = agent.getHistory()
+    epochs = sorted(history.steps.keys())
     return RunResult(
         grid_n=config.grid_n,
         generator=config.generator,
@@ -63,6 +68,8 @@ def run_single(config: RunConfig, solved_maze: SolvedMaze, agent: Agent) -> RunR
         episodes_trained=epoch + 1,
         optimality_ratio=path_len / optimal_len,
         path_regret=path_len - optimal_len,
+        path_lengths = [len(history.steps[epoch]) for epoch in epochs],
+        total_rewards = [np.sum(history.rewards.get(epoch, [])) for epoch in epochs],
     )
 
 
@@ -112,8 +119,8 @@ def aggregate_results(results: list[RunResult]) -> dict[str, dict[tuple, dict]]:
                 "mean_path_regret": sum(r.path_regret for r in bucket) / n,
                 "mean_episodes": sum(r.episodes_trained for r in bucket) / n,
             }
+    
     return summaries
-
 
 def print_summary(summaries: dict[str, dict[tuple, dict]]) -> None:
     print("\n=== By strategy ===")
@@ -167,7 +174,6 @@ def main() -> None:
 
     summaries = aggregate_results(results)
     print_summary(summaries)
-
     csv_path = save_results_csv(results, RESULTS_DIR)
     print(f"\nWrote per-run results to {csv_path}")
 

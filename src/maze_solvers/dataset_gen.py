@@ -7,8 +7,8 @@ from maze_dataset.dataset.collected_dataset import (
 )
 from maze_dataset.generation import LatticeMazeGenerators
 
-GRID_SIZES = [5, 10, 20]
-N_MAZES = 50
+GRID_SIZES = [10]
+N_MAZES = 70
 GENERATORS = [
     ("wilson", LatticeMazeGenerators.gen_wilson, {}),
     ("dfs_percolation", LatticeMazeGenerators.gen_dfs_percolation, {"p": 0.5}),
