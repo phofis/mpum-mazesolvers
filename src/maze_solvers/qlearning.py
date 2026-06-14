@@ -119,11 +119,12 @@ class Qlearning(Agent):
                 return
 
     def predict(self) -> Tuple[List[int], List[Coord], List[int], bool, int]:
+        S = self.env.reset()
         rewards = []
-        path = []
+        path = [S]
         actions = []
         foundExit = False
-        S = self.env.reset()
+        
         exploration = Greedy()
         while not foundExit:
             A = exploration.pick_action(S, self.q_table, self.hyperparams, self.env.mask)
